@@ -1,8 +1,8 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.request import HTTPXRequest
 
 TOKEN = "8711109416:AAHEsO2Bf-tvtoP7Escs09h1n0nRdNiuSWw"
-
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -21,7 +21,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -39,8 +38,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "3. Рекомендации — персонализированные материалы\n"
             "4. Трудоустройство — паспорт компетенций в hh.ru"
         )
-
-        await query.edit_message_text(text)
+        keyboard = [[InlineKeyboardButton("Назад", callback_data="back_to_menu")]]
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
 
     elif query.data == "resources":
         keyboard = [
@@ -49,7 +48,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("Сайт проекта", url="https://profi-navigator.lovable.app/")],
             [InlineKeyboardButton("Назад", callback_data="back_to_menu")],
         ]
-
         await query.edit_message_text(
             "Наши ресурсы:\n\nВыбери, куда хочешь перейти:",
             reply_markup=InlineKeyboardMarkup(keyboard)
@@ -64,13 +62,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "#история_из_политеха — истории студентов\n"
             "#опрос_недели — опросы"
         )
-
         keyboard = [[InlineKeyboardButton("Назад", callback_data="back_to_menu")]]
-
-        await query.edit_message_text(
-            text,
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
 
     elif query.data == "faq":
         text = (
@@ -84,13 +77,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Что делать, если не знаю компетенцию?\n"
             "Напиши нам — поможем разобраться!"
         )
-
         keyboard = [[InlineKeyboardButton("Назад", callback_data="back_to_menu")]]
-
-        await query.edit_message_text(
-            text,
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
 
     elif query.data == "back_to_menu":
         keyboard = [
@@ -99,22 +87,26 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("Рубрики канала", callback_data="rubrics")],
             [InlineKeyboardButton("Частые вопросы", callback_data="faq")],
         ]
-
         await query.edit_message_text(
             "Главное меню:\n\nВыбери, что тебя интересует:",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
-
 def main():
-    app = Application.builder().token(TOKEN).build()
+    request = HTTPXRequest(
+        connect_timeout=30.0,
+        read_timeout=30.0,
+        write_timeout=30.0,
+        pool_timeout=30.0
+    )
+    
+    app = Application.builder().token(TOKEN).request(request).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
 
     print("Бот запущен...")
     app.run_polling()
-
 
 if __name__ == "__main__":
     main()
